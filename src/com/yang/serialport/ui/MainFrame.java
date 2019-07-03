@@ -22,6 +22,7 @@ import javax.swing.event.PopupMenuListener;
 
 import com.yang.serialport.manager.SerialPortManager;
 import com.yang.serialport.utils.ByteUtils;
+import com.yang.serialport.utils.ConvertUtils;
 import com.yang.serialport.utils.ShowUtils;
 
 import gnu.io.PortInUseException;
@@ -64,6 +65,10 @@ public class MainFrame extends JFrame {
 	private List<String> mCommList = null;
 	// 串口对象
 	private SerialPort mSerialport;
+	
+	String[] cache = new String[50];
+	int t1 = 10;
+	int t2 = 10;
 
 	public MainFrame() {
 		initView();
@@ -275,6 +280,17 @@ public class MainFrame extends JFrame {
 						// 以十六进制的形式接收数据
 						if (mDataHexChoice.isSelected()) {
 							mDataView.append(ByteUtils.byteArrayToHexString(data) + "\r\n");
+						}
+						
+						/* 处理数据和自动发送 */
+						byte[][] output = ConvertUtils.convert(data, cache);
+						for(byte[] b : output) {
+							for(int i = 0; i < 3; i++) {
+								SerialPortManager.sendToPort(mSerialport, b);
+								System.out.println("Sent: " + ByteUtils.byteArrayToHexString(b));
+								Thread.sleep(t1);
+							}
+							Thread.sleep(t2);
 						}
 					}
 				} catch (Exception e) {
